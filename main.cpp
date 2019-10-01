@@ -4,8 +4,20 @@
 #include "ray.hpp"
 using namespace Eigen;
 
+bool hit_sphere(const Vector3f& center, float radius, const ray& r)
+{
+	Vector3f oc = r.origin() - center;
+	Vector3f dir = r.direction();
+	float a = dir.dot(dir);
+	float b = 2.0 * oc.dot(dir);
+	float c = oc.dot(oc) - radius * radius;
+	float discriminant = b * b - 4 * a * c;
+	return (discriminant > 0);
+}
 Vector3f color(const ray& r)
 {
+	if (hit_sphere(Vector3f(0, 0, -1), 0.5, r))
+		return Vector3f(1, 0, 0);
 	Vector3f unit_direction = r.direction().normalized();
 	float t = 0.5f * (unit_direction.y() + 1.0f);
 	return (1.0f - t) * Vector3f(1.0f, 1.0f, 1.0f) + t * Vector3f(0.5f, 0.7f, 1.0f);
