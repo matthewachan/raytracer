@@ -1,26 +1,23 @@
 #include <iostream>
 #include <fstream>
+#include <math.h>
 #include <Eigen/Dense>
+#include <limits>
 #include "ray.hpp"
+#include "hittable_list.hpp"
+#include "sphere.hpp"
 using namespace Eigen;
 
-bool hit_sphere(const Vector3f& center, float radius, const ray& r)
+Vector3f color(const ray& r, hittable *world)
 {
-	Vector3f oc = r.origin() - center;
-	Vector3f dir = r.direction();
-	float a = dir.dot(dir);
-	float b = 2.0 * oc.dot(dir);
-	float c = oc.dot(oc) - radius * radius;
-	float discriminant = b * b - 4 * a * c;
-	return (discriminant > 0);
-}
-Vector3f color(const ray& r)
-{
-	if (hit_sphere(Vector3f(0, 0, -1), 0.5, r))
-		return Vector3f(1, 0, 0);
-	Vector3f unit_direction = r.direction().normalized();
-	float t = 0.5f * (unit_direction.y() + 1.0f);
-	return (1.0f - t) * Vector3f(1.0f, 1.0f, 1.0f) + t * Vector3f(0.5f, 0.7f, 1.0f);
+	hit_record rec;
+	if (world->hit(r, 0.0, std::numeric_limits<float>::max(), rec))
+		return 0.5 * Vector3f(rec.normal.x() + 1, rec.normal.y() + 1, rec.normal.z() + 1);
+	else {
+		Vector3f unit_dir = r.direction();
+		float t = 0.5 * (unit_dir.y() + 1);
+		return (1.0 - t) * Vector3f(1, 1, 1) + t * Vector3f(0.5, 0.7, 1.0);
+	}
 }
 
 int main()
@@ -34,12 +31,18 @@ int main()
 	Vector3f horizontal(4.0f, 0.0f, 0.0f);
 	Vector3f vertical(0.0f, 2.0f, 0.0f);
 	Vector3f origin(0.0f, 0.0f, 0.0f);
+
+	hittable *list[2];
+	list[0] = new sphere(Vector3f(0, 0, -1), 0.5);
+	list[1] = new sphere(Vector3f(0, -100.5, -1), 100);
+	hittable *world = new hittable_list(list, 2);
 	for (int j = ny - 1; j >= 0; j--) {
 		for (int i = 0; i < nx; ++i) {
 			float u = float(i) / nx;
 			float v = float(j) / ny;
 			ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-			Vector3f col = color(r);
+			Vector3f p = r.point_at_parameter(2.0);
+			Vector3f col = color(r, world);
 			int ir = int (255.99 * col[0]);
 			int ig = int (255.99 * col[1]);
 			int ib = int (255.99 * col[2]);
