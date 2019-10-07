@@ -3,9 +3,12 @@
 #include <math.h>
 #include <Eigen/Dense>
 #include <limits>
+
 #include "ray.hpp"
 #include "hittable_list.hpp"
 #include "sphere.hpp"
+#include "camera.hpp"
+
 using namespace Eigen;
 
 Vector3f color(const ray& r, hittable *world)
@@ -27,6 +30,7 @@ int main()
 	int nx = 200;
 	int ny = 100;
 	output << "P3\n" << nx << " " << ny << "\n255\n";
+	camera cam;
 	Vector3f lower_left_corner(-2.0f, -1.0f, -1.0f);
 	Vector3f horizontal(4.0f, 0.0f, 0.0f);
 	Vector3f vertical(0.0f, 2.0f, 0.0f);
@@ -40,7 +44,7 @@ int main()
 		for (int i = 0; i < nx; ++i) {
 			float u = float(i) / nx;
 			float v = float(j) / ny;
-			ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+			ray r = cam.get_ray(u, v);
 			Vector3f p = r.point_at_parameter(2.0);
 			Vector3f col = color(r, world);
 			int ir = int (255.99 * col[0]);
