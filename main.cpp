@@ -5,29 +5,27 @@
 #include <limits>
 #include <random>
 
-#include "ray.hpp"
-#include "hittable_list.hpp"
-#include "sphere.hpp"
 #include "camera.hpp"
+#include "hittable_list.hpp"
+#include "ray.hpp"
+#include "sphere.hpp"
+#include "lambertian.hpp"
+#include "metal.hpp"
 
 using namespace Eigen;
 
-Vector3f uniform_sample_unit_sphere()
-{
-	Vector3f p;
-	do {
-		p = 2.0 * Vector3f(drand48(), drand48(), drand48()) - Vector3f(1, 1, 1);
-	} while (pow(p.norm(), 1) >= 1.0);
-	return p;
-}
-
-Vector3f color(const ray& r, hittable *world)
+Vector3f color(const ray& r, hittable *world, int depth)
 {
 	hit_record rec;
 	float epsilon = 0.001;
+	int max_depth = 50;	
 	if (world->hit(r, epsilon, std::numeric_limits<float>::max(), rec)) {
-		Vector3f target = rec.p + rec.normal + uniform_sample_unit_sphere();
-		return 0.5 * color(ray(rec.p, target - rec.p), world);
+		ray scattered;
+		Vector3f attenuation;
+		if (depth < max_depth && rec.mat->scatter(r, rec, attenuation, scattered))
+			return attenuation.cwiseProduct(color(scattered, world, depth+1));
+		else
+			return Vector3f(0, 0, 0);
 	}
 	else {
 		Vector3f unit_dir = r.direction();
@@ -50,10 +48,12 @@ int main()
 	Vector3f vertical(0.0f, 2.0f, 0.0f);
 	Vector3f origin(0.0f, 0.0f, 0.0f);
 
-	hittable *list[2];
-	list[0] = new sphere(Vector3f(0, 0, -1), 0.5);
-	list[1] = new sphere(Vector3f(0, -100.5, -1), 100);
-	hittable *world = new hittable_list(list, 2);
+	hittable *list[4];
+	list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.8, 0.3, 0.3)));
+	list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
+	list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2)));
+	list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.8, 0.8)));
+	hittable *world = new hittable_list(list, 4);
 	for (int j = ny - 1; j >= 0; j--) {
 		for (int i = 0; i < nx; ++i) {
 			Vector3f col(0, 0, 0);
@@ -62,7 +62,7 @@ int main()
 				float v = float(j + drand48()) / ny;
 				ray r = cam.get_ray(u, v);
 				Vector3f p = r.point_at_parameter(2.0);
-				col += color(r, world);
+				col += color(r, world, 0);
 			}
 			col /= float(ns);
 			col = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));

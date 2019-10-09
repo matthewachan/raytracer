@@ -2,15 +2,17 @@
 #define SPHERE_HPP
 
 #include "hittable.hpp"
+#include "material.hpp"
 
 class sphere : public hittable
 {
 	public:
 		sphere() {};
-		sphere(Eigen::Vector3f c, float r) : center(c), radius(r) {};
+		sphere(Eigen::Vector3f c, float r, material* m) : center(c), radius(r), mat(m) {};
 		virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
 		Eigen::Vector3f center;
 		float radius;
+		material* mat;
 };
 
 bool sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
@@ -28,12 +30,14 @@ bool sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
 			rec.t = t1;
 			rec.p = r.point_at_parameter(rec.t);
 			rec.normal = (rec.p - center) / radius;
+			rec.mat = mat;
 			return true;
 		}
 		if (t2 < tmax && t2 > tmin) {
 			rec.t = t2;
 			rec.p = r.point_at_parameter(rec.t);
 			rec.normal = (rec.p - center) / radius;
+			rec.mat = mat;
 			return true;
 		}
 	}
