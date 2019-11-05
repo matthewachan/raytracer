@@ -11,6 +11,7 @@
 #include "sphere.hpp"
 #include "lambertian.hpp"
 #include "metal.hpp"
+#include "dielectric.hpp"
 
 using namespace Eigen;
 
@@ -49,10 +50,10 @@ int main()
 	Vector3f origin(0.0f, 0.0f, 0.0f);
 
 	hittable *list[4];
-	list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.8, 0.3, 0.3)));
+	list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
 	list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
-	list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2), 0.3));
-	list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.8, 0.8), 1));
+	list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2)));
+	list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5));
 	hittable *world = new hittable_list(list, 4);
 	for (int j = ny - 1; j >= 0; j--) {
 		for (int i = 0; i < nx; ++i) {
