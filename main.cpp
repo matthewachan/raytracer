@@ -43,11 +43,8 @@ int main()
 	int ny = 100;
 	int ns = 100;
 	output << "P3\n" << nx << " " << ny << "\n255\n";
-	camera cam;
-	Vector3f lower_left_corner(-2.0f, -1.0f, -1.0f);
-	Vector3f horizontal(4.0f, 0.0f, 0.0f);
-	Vector3f vertical(0.0f, 2.0f, 0.0f);
-	Vector3f origin(0.0f, 0.0f, 0.0f);
+
+	camera cam(Eigen::Vector3f(-2,2,1), Eigen::Vector3f(0,0,-1), Eigen::Vector3f(0,1,0), 90, float(nx)/ny);
 
 	hittable *list[4];
 	list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
