@@ -9,6 +9,7 @@
 #include "hittable_list.hpp"
 #include "ray.hpp"
 #include "sphere.hpp"
+#include "triangle.hpp"
 #include "lambertian.hpp"
 #include "metal.hpp"
 #include "dielectric.hpp"
@@ -65,28 +66,39 @@ int main()
 	int ns = 100;
 	output << "P3\n" << nx << " " << ny << "\n255\n";
 
-	/* camera cam(Eigen::Vector3f(0,0,1), Eigen::Vector3f(0,0,-1), Eigen::Vector3f(0,1,0), 90, float(nx)/ny); */
-	Vector3f lookfrom(278, 278, -800);
-	Vector3f lookat(278,278,0);
-	float dist_to_focus = 10.0;
-	float aperture = 0.0;
-	float vfov = 40.0;
+	Vector3f lookfrom(0, 0, 1);
+	Vector3f lookat(0, 0, -1);
 
-	camera cam(lookfrom, lookat, Vector3f(0,1,0), vfov, float(nx)/float(ny));
+	/* Cornell box camera settings */
+	/* Vector3f lookfrom(278, 278, -800); */
+	/* Vector3f lookat(278,278,0); */
+	/* float dist_to_focus = 10.0; */
+	/* float aperture = 0.0; */
+	/* float vfov = 40.0; */
 
-	/* hittable *list[4]; */
+	/* camera cam(lookfrom, lookat, Vector3f(0,1,0), vfov, float(nx)/float(ny)); */
+	camera cam(Eigen::Vector3f(0,0,1), Eigen::Vector3f(0,0,-1), Eigen::Vector3f(0,1,0), 90, float(nx)/ny);
+
+	hittable ** list = new hittable*[4];
 	/* list[0] = new sphere(Vector3f(0,-1000, 0), 1000, new lambertian(Vector3f(0.1, 0.2, 0.5))); */
 	/* list[1] = new sphere(Vector3f(0, 2, 0), 2, new lambertian(Vector3f(0.8, 0.8, 0))); */
 	/* list[2] = new sphere(Vector3f(0, 7, 0), 2, */
 	/* 		new diffuse_light(Vector3f(4,4,4))); */
 	/* list[3] = new xyrect(3, 5, 1, 3, -2, */
 	/* 		new diffuse_light(Vector3f(3, 3, 3))); */
-	/* list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5))); */
-	/* list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0))); */
+	list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
+	list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
+	list[2] = new triangle(Vector3f(-1, -1, -2), Vector3f(-1, 1, -2), Vector3f(1, 1, -2), new lambertian(Vector3f(1, 0, 0)));
 	/* list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2))); */
 	/* list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5)); */
+	list[3] = new sphere(Vector3f(-1, 2, -1), 0.5, new diffuse_light(Vector3f(24,24,24)));
+	/* hittable **list = new hittable*[2]; */
+	/* list[0] = new triangle(Vector3f(0, 2, 0), Vector3f(1, 2, 0), Vector3f(4, 4, 0), new lambertian(Vector3f(0.1, 0.2, 0.5))); */
+	/* list[1] = new sphere(Vector3f(0, 2, 0), 2, new lambertian(Vector3f(0.8, 0.8, 0))); */
+	hittable *world = new hittable_list(list, 4);
 
-	hittable *world = cornell_box();
+
+	/* hittable *world = cornell_box(); */
 	for (int j = ny - 1; j >= 0; j--) {
 		for (int i = 0; i < nx; ++i) {
 			Vector3f col(0, 0, 0);
