@@ -22,27 +22,38 @@
 
 using namespace Eigen;
 
-#define IMG_WIDTH 100
-#define IMG_HEIGHT 100
-#define N_SAMPLES 50
+#define IMG_WIDTH 200
+#define IMG_HEIGHT 200
+#define N_SAMPLES 200
 
 
-Vector3f color(const ray& r, hittable *world, int depth)
+Vector3f color(const ray& r, hittable *world, Vector3f throughput)
 {
 	hit_record rec;
 	float epsilon = 0.001;
-	int max_depth = 50;	
 	if (world->hit(r, epsilon, std::numeric_limits<float>::max(), rec)) {
-		ray scattered;
-		Vector3f attenuation;
 		Vector3f emitted = rec.mat->emitted();
-		if (depth < max_depth && rec.mat->scatter(r, rec, attenuation, scattered))
-			return emitted + attenuation.cwiseProduct(color(scattered, world, depth+1));
+
+		Vector3f attenuation;
+		ray scattered;
+		if (rec.mat->scatter(r, rec, attenuation, scattered)) {
+			throughput = attenuation.cwiseProduct(throughput);
+			float p = std::max(throughput[0], std::max(throughput[1], throughput[2]));
+
+			// Russian Roulette path termination
+			if (drand48() > p)
+				return emitted;
+
+			throughput *= 1/p;
+
+			return emitted + attenuation.cwiseProduct(color(scattered, world, throughput));
+		}
 		else
 			return emitted;
 	}
-	else
-		return Vector3f(0, 0, 0);
+
+	// Return background color
+	return Vector3f(0, 0, 0);
 }
 
 hittable *cornell_box() {
@@ -72,7 +83,7 @@ void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img)
 				float u = float(i + drand48()) / IMG_WIDTH;
 				float v = float(j + drand48()) / IMG_HEIGHT;
 				ray r = cam.get_ray(u, v);
-				col += color(r, world, 0);
+				col += color(r, world, Vector3f(1, 1, 1));
 			}
 			col /= float(N_SAMPLES);
 			img[j][i] = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
@@ -82,12 +93,6 @@ void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img)
 
 int main()
 {
-	std::ofstream output;
-	output.open("output.ppm");
-
-	output << "P3\n" << IMG_WIDTH << " " << IMG_HEIGHT << "\n255\n";
-
-
 	/* Cornell box camera settings */
 	Vector3f lookfrom(278, 278, -800);
 	Vector3f lookat(278,278,0);
@@ -101,17 +106,22 @@ int main()
 	hittable *world = cornell_box();
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
 
-	/* render(0, 0, cam, world, img); */
 	int nthreads = std::thread::hardware_concurrency();
 	std::cout << "Rendering with " << nthreads << " threads" << std::endl;
 	std::thread threads[nthreads];
+
+	// Initialize threads to render image
 	for (int i = 0; i < nthreads; ++i)
 		threads[i] = std::thread(render, i, nthreads, cam, world, img);
 
+	// Wait for threads to finish
 	for (int i = 0; i < nthreads; ++i)
 		threads[i].join();
 
-
+	// Write image to output file
+	std::ofstream output;
+	output.open("output.ppm");
+	output << "P3\n" << IMG_WIDTH << " " << IMG_HEIGHT << "\n255\n";
 	for (int j = IMG_HEIGHT - 1; j >= 0; j--) {
 		for (int i = 0; i < IMG_WIDTH; ++i) {
 			Vector3f col = img[j][i];
@@ -121,8 +131,6 @@ int main()
 			output << ir << " " << ig << " " << ib << "\n";
 		}
 	}
-
-
 
 	return 0;
 }
