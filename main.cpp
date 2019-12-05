@@ -22,6 +22,11 @@
 
 using namespace Eigen;
 
+#define IMG_WIDTH 100
+#define IMG_HEIGHT 100
+#define N_SAMPLES 50
+
+
 Vector3f color(const ray& r, hittable *world, int depth)
 {
 	hit_record rec;
@@ -57,14 +62,30 @@ hittable *cornell_box() {
     return new hittable_list(list,i);
 }
 
+void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img)
+{
+	for (int j = IMG_HEIGHT - tid - 1; j >= 0; j -= nthreads) {
+		img[j] = new Vector3f[IMG_WIDTH];
+		for (int i = 0; i < IMG_WIDTH; ++i) {
+			Vector3f col(0, 0, 0);
+			for (int s = 0; s < N_SAMPLES; s++) {
+				float u = float(i + drand48()) / IMG_WIDTH;
+				float v = float(j + drand48()) / IMG_HEIGHT;
+				ray r = cam.get_ray(u, v);
+				col += color(r, world, 0);
+			}
+			col /= float(N_SAMPLES);
+			img[j][i] = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+		}
+	}
+}
+
 int main()
 {
 	std::ofstream output;
 	output.open("output.ppm");
-	int nx = 100;
-	int ny = 100;
-	int ns = 50;
-	output << "P3\n" << nx << " " << ny << "\n255\n";
+
+	output << "P3\n" << IMG_WIDTH << " " << IMG_HEIGHT << "\n255\n";
 
 
 	/* Cornell box camera settings */
@@ -74,51 +95,34 @@ int main()
 	float aperture = 0.0;
 	float vfov = 40.0;
 
-	camera cam(lookfrom, lookat, Vector3f(0,1,0), vfov, float(nx)/float(ny));
+	camera cam(lookfrom, lookat, Vector3f(0,1,0), vfov,
+			float(IMG_WIDTH)/float(IMG_HEIGHT));
+
 	hittable *world = cornell_box();
+	Vector3f **img = new Vector3f*[IMG_HEIGHT];
 
-	/* Vector3f lookfrom(0, 0, 1); */
-	/* Vector3f lookat(0, 0, -1); */
-	/* camera cam(Eigen::Vector3f(0,0,1), Eigen::Vector3f(0,0,-1), Eigen::Vector3f(0,1,0), 90, float(nx)/ny); */
-	/* int n = 4; */
-	/* hittable ** list = new hittable*[n]; */
-	/* list[0] = new sphere(Vector3f(0,-1000, 0), 1000, new lambertian(Vector3f(0.1, 0.2, 0.5))); */
-	/* list[1] = new sphere(Vector3f(0, 2, 0), 2, new lambertian(Vector3f(0.8, 0.8, 0))); */
-	/* list[2] = new sphere(Vector3f(0, 7, 0), 2, */
-	/* 		new diffuse_light(Vector3f(4,4,4))); */
-	/* list[3] = new xyrect(3, 5, 1, 3, -2, */
-	/* 		new diffuse_light(Vector3f(3, 3, 3))); */
-	/* list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5))); */
-	/* list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0))); */
-	/* list[0] = new triangle(Vector3f(-100, -100, -2), Vector3f(-100, 100, -2), Vector3f(100, 100, -2), new lambertian(Vector3f(1, 0, 0))); */
-	/* list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2))); */
-	/* list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5)); */
+	/* render(0, 0, cam, world, img); */
+	int nthreads = std::thread::hardware_concurrency();
+	std::cout << "Rendering with " << nthreads << " threads" << std::endl;
+	std::thread threads[nthreads];
+	for (int i = 0; i < nthreads; ++i)
+		threads[i] = std::thread(render, i, nthreads, cam, world, img);
+
+	for (int i = 0; i < nthreads; ++i)
+		threads[i].join();
 
 
-
-	/* list[0] = new sphere(Vector3f(-1, 1, -1), 1, new diffuse_light(Vector3f(24,24,24))); */
-	/* list[1] = new triangle(Vector3f(-10, -10, -2), Vector3f(-10, 10, -2), Vector3f(10, 10, -2), new lambertian(Vector3f(1, 0, 0))); */
-	/* list[2] = new xy_plane(-10, 10, -10, 10, -3, new lambertian(Vector3f(0, 1, 0))); */
-	/* list[3] = new sphere(Vector3f(1, -1, -1), 0.5, new dielectric(1.5)); */
-	/* hittable *world = new hittable_list(list, n); */
-
-
-	for (int j = ny - 1; j >= 0; j--) {
-		for (int i = 0; i < nx; ++i) {
-			Vector3f col(0, 0, 0);
-			for (int s = 0; s < ns; s++) {
-				float u = float(i + drand48()) / nx;
-				float v = float(j + drand48()) / ny;
-				ray r = cam.get_ray(u, v);
-				col += color(r, world, 0);
-			}
-			col /= float(ns);
-			col = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+	for (int j = IMG_HEIGHT - 1; j >= 0; j--) {
+		for (int i = 0; i < IMG_WIDTH; ++i) {
+			Vector3f col = img[j][i];
 			int ir = int (255.99 * col[0]);
 			int ig = int (255.99 * col[1]);
 			int ib = int (255.99 * col[2]);
 			output << ir << " " << ig << " " << ib << "\n";
 		}
 	}
+
+
+
 	return 0;
 }

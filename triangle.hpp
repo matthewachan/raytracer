@@ -35,31 +35,6 @@ public:
 		rec.p = p;
 
 		return true;
-		/* // Plane defined by vector in the plane and normal */
-		/* Eigen::Vector3f vec1 = v1-v2; */
-		/* Eigen::Vector3f vec2 = v3-v2; */
-		/* Eigen::Vector3f normal = vec1.cross(vec2); // Careful in how you define the normal here */
-		/* // Normalize just in case */
-
-		/* // Compute ray/plane intersection point */
-		/* float t = (v1-r.origin()).dot(normal) / r.direction().dot(normal); */
-		/* if (t < tmin || t > tmax) */
-		/* 	return false; */
-
-		/* Eigen::Vector3f p = r.point_at_parameter(t); */
-
-		/* // Inside-outside test */
-		/* Eigen::Vector3f A = ((v1-v2).cross(rec.p-v2)); */
-		/* Eigen::Vector3f B = ((v3-v1).cross(rec.p-v1)); */
-		/* Eigen::Vector3f C = ((v2-v3).cross(rec.p-v3)); */
-		/* if (A.dot(normal) < 0 || B.dot(normal) < 0 || C.dot(normal) < 0) */
-		/* 	return false; */
-
-		/* rec.t = t; */
-		/* rec.mat = mat; */
-		/* rec.normal = normal; */
-		/* rec.p = p; */
-		/* return true; */
 	}
 
 
