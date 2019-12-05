@@ -52,7 +52,7 @@ hittable *cornell_box() {
     list[i++] = new xz_plane(0, 555, 0, 555, 0, white);
     list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white));
     /* list[i++] = new sphere(Vector3f(278, 278, 278), 50, red); */
-    list[i++] = new flip_normals(new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red));
+    list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red);
 
     return new hittable_list(list,i);
 }

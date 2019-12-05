@@ -10,40 +10,6 @@ public:
 	triangle(Eigen::Vector3f v0, Eigen::Vector3f v1, Eigen::Vector3f v2, material* m) : v0(v0), v1(v1), v2(v2), mat(m) {};
 	virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const
 	{
-		/* const float EPSILON = 0.0000001; */
-		/* Eigen::Vector3f edge1, edge2, h, s, q; */
-		/* float a,f,u,v; */
-		/* edge1 = v1 - v0; */
-		/* edge2 = v2 - v0; */
-		/* h = r.direction().cross(edge2); */
-		/* a = edge1.dot(h); */
-		/* if (a > -EPSILON && a < EPSILON) */
-		/* 	return false;    // This ray is parallel to this triangle. */
-		/* f = 1.0/a; */
-		/* s = r.origin() - v0; */
-		/* u = f * s.dot(h); */
-		/* if (u < 0.0 || u > 1.0) */
-		/* 	return false; */
-		/* q = s.cross(edge1); */
-		/* v = f * r.direction().dot(q); */
-		/* if (v < 0.0 || u + v > 1.0) */
-		/* 	return false; */
-		/* // At this stage we can compute t to find out where the intersection point is on the line. */
-		/* float t = f * edge2.dot(q); */
-		/* if (t > EPSILON && t < 1/EPSILON) // ray intersection */
-		/* { */
-		/* 	Eigen::Vector3f p = r.point_at_parameter(t); */
-		/* 	rec.t = t; */
-		/* 	rec.mat = mat; */
-		/* 	rec.normal = (edge1.cross(edge2)).normalized(); */
-		/* 	rec.p = p; */
-		/* 	return true; */
-		/* } */
-		/* else // This means that there is a line intersection but not a ray intersection. */
-		/* 	return false; */
-
-
-
 		Eigen::Vector3f v0v1 = v1 - v0; 
 		Eigen::Vector3f v0v2 = v2 - v0; 
 		Eigen::Vector3f pvec = r.direction().cross(v0v2); 
@@ -64,6 +30,8 @@ public:
 		rec.t = t;
 		rec.mat = mat;
 		rec.normal = (v0v1.cross(v0v2)).normalized();
+		if (rec.normal.dot(r.direction()) < 0)
+			rec.normal = -rec.normal;
 		rec.p = p;
 
 		return true;
