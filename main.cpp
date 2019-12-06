@@ -22,8 +22,8 @@
 
 using namespace Eigen;
 
-#define IMG_WIDTH 200
-#define IMG_HEIGHT 200
+#define IMG_WIDTH 100
+#define IMG_HEIGHT 100
 #define N_SAMPLES 200
 
 
@@ -57,7 +57,7 @@ Vector3f color(const ray& r, hittable *world, Vector3f throughput)
 }
 
 hittable *cornell_box() {
-    hittable **list = new hittable*[7];
+    hittable **list = new hittable*[8];
     int i = 0;
     material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
     material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
@@ -67,7 +67,7 @@ hittable *cornell_box() {
     list[i++] = new flip_normals(new xz_plane(0, 555, 0, 555, 555, white));
     list[i++] = new xz_plane(0, 555, 0, 555, 0, white);
     list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white));
-    /* list[i++] = new sphere(Vector3f(278, 278, 278), 50, red); */
+    list[i++] = new sphere(Vector3f(278, 278, 278), 50, red);
     list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red);
 
     return new hittable_list(list,i);
