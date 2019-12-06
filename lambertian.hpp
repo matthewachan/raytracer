@@ -9,7 +9,7 @@ class lambertian : public material
 {
 	public:
 		lambertian(const Eigen::Vector3f& a) : albedo(a) {}
-		virtual bool scatter(const ray& r_in, const hit_record& rec, Eigen::Vector3f& attenuation, ray& scattered) const
+		virtual bool scatter(const ray& r_in, const hit_record& rec, Eigen::Vector3f& attenuation, ray& scattered, float& pdf) const
 		{
 			Eigen::Vector3f dir = uniform_sample_proj_solid_angle();
 
@@ -32,6 +32,8 @@ class lambertian : public material
 
 			scattered = ray(rec.p, target);
 			attenuation = albedo;
+			pdf = rec.normal.dot(scattered.direction()) / M_PI;
+
 			return true;
 		}
 		Eigen::Vector3f albedo;

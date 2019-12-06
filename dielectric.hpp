@@ -28,7 +28,7 @@ class dielectric : public material {
 		dielectric(float ri) : ref_idx(ri) {}
 
 
-		virtual bool scatter(const ray& r_in, const hit_record& rec, Eigen::Vector3f& attenuation, ray& scattered) const 
+		virtual bool scatter(const ray& r_in, const hit_record& rec, Eigen::Vector3f& attenuation, ray& scattered, float& pdf) const 
 		{
 			Eigen::Vector3f outward_normal;
 			Eigen::Vector3f reflected = reflect(r_in.direction(), rec.normal);
