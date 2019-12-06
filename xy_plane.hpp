@@ -7,7 +7,7 @@ xy_plane() {}
 xy_plane(float x0, float x1, float y0, float y1, float k, material *mat)
 	: x0(x0), x1(x1), y0(y0), y1(y1), k(k), mat(mat) {}
 virtual bool hit(const ray&r, float tmin, float tmax, hit_record& rec) const;
-virtual bool bounding_box(float tmin, float tmax, aabb& box) const
+virtual bool bounding_box(aabb& box) const
 {
 	float offset = 0.00001;
 	Eigen::Vector3f c1 = Eigen::Vector3f(x0, y0, k-offset);

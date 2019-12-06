@@ -7,7 +7,7 @@ class yz_plane: public hittable {
         yz_plane(float y0, float y1, float z0, float z1, float k, material *mat)
             : y0(y0), y1(y1), z0(z0), z1(z1), k(k), mat(mat) {};
         virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
-        virtual bool bounding_box(float tmin, float tmax, aabb& box) const {
+        virtual bool bounding_box(aabb& box) const {
 		float offset = 0.00001;
 		Eigen::Vector3f c1 = Eigen::Vector3f(k-offset, y0, z0);
 		Eigen::Vector3f c2 = Eigen::Vector3f(k+offset, y1, z1);

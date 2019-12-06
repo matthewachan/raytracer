@@ -11,7 +11,7 @@ class sphere : public hittable
 		sphere() {};
 		sphere(Eigen::Vector3f c, float r, material* m) : center(c), radius(r), mat(m) {};
 		virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
-		virtual bool bounding_box(float t0, float t1, aabb& box) const
+		virtual bool bounding_box(aabb& box) const
 		{
 			box = aabb(center - Eigen::Vector3f(radius, radius, radius),
 					center + Eigen::Vector3f(radius, radius, radius));

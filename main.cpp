@@ -6,7 +6,9 @@
 #include <random>
 #include <thread>
 
+#include "bvh_node.hpp"
 #include "camera.hpp"
+#include "mesh.hpp"
 #include "hittable_list.hpp"
 #include "ray.hpp"
 #include "sphere.hpp"
@@ -63,16 +65,19 @@ hittable *cornell_box() {
 	int i = 0;
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
 	material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
-	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15)); material *light = new diffuse_light(Vector3f(15, 15, 15)); list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green));
+	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
+	material *light = new diffuse_light(Vector3f(15, 15, 15));
+	list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green));
 	list[i++] = new yz_plane(0, 555, 0, 555, 0, red);
 	list[i++] = new xz_plane(213, 343, 227, 332, 554, light);
 	list[i++] = new flip_normals(new xz_plane(0, 555, 0, 555, 555, green));
 	list[i++] = new xz_plane(0, 555, 0, 555, 0, white);
 	list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white));
-	list[i++] = new sphere(Vector3f(278, 278, 278), 50, green);
-	list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red);
+	/* list[i++] = new sphere(Vector3f(278, 278, 278), 50, green); */
+	list[i++] = new mesh(Vector3f(150, 150, 150), "triangle.obj", red);
 
-	return new hittable_list(list,i);
+	/* list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red); */
+	return new bvh_node(list, i);
 }
 
 void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img)

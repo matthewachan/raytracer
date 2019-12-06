@@ -39,7 +39,7 @@ public:
 
 
 
-	virtual bool bounding_box(float t0, float t1, aabb& box) const
+	virtual bool bounding_box(aabb& box) const
 	{
 		// Construct AABB from front, left, bot corner and back, right top corner
 		float xmin, xmax, ymin, ymax, zmin, zmax;
