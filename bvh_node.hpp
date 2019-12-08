@@ -50,6 +50,17 @@ class bvh_node : public hittable {
 
 		virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
 		virtual bool bounding_box(aabb& box) const;
+		bvh_node *merge(hittable *other) {
+			bvh_node *node = new bvh_node();
+			node->left = this;
+			node->right = other;
+			aabb lbox, rbox;
+			if(!node->right->bounding_box(rbox) || !node->left->bounding_box(lbox))
+				std::cerr << "no bounding box in bvh_node constructor\n";
+			node->box = surrounding_box(lbox, rbox);
+			return node;
+
+		};
 
 		hittable *left;
 		hittable *right;

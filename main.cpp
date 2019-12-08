@@ -29,62 +29,23 @@ using namespace Eigen;
 #define IMG_HEIGHT 200
 #define N_SAMPLES 50
 
-Vector3f uv_renderer(const ray& r, hittable *world, Vector3f throughput)
-{
-	hit_record rec;
-	float epsilon = 0.001;
-	if (world->hit(r, epsilon, std::numeric_limits<float>::max(), rec))
-		return 0.5 * (rec.normal + Vector3f(1,1,1));
-	return Vector3f(0, 0, 0);
-}
-
-
-Vector3f color(const ray& r, hittable *world, Vector3f throughput)
-{
-	hit_record rec;
-	float epsilon = 0.001;
-	if (world->hit(r, epsilon, std::numeric_limits<float>::max(), rec)) {
-		return 0.5 * (rec.normal + Vector3f(1,1,1));
-
-		/* Vector3f emitted = rec.mat->emitted(r, rec); */
-
-		/* Vector3f attenuation; */
-		/* ray scattered; */
-		/* float pdf; */
-		/* if (rec.mat->scatter(r, rec, attenuation, scattered, pdf)) { */
-
-		/* 	throughput = attenuation.cwiseProduct(throughput); */
-		/* 	float p = std::max(throughput[0], std::max(throughput[1], throughput[2])); */
-
-		/* 	// Russian Roulette path termination */
-		/* 	if (drand48() > p) */
-		/* 		return emitted; */
-
-		/* 	throughput *= 1/p; */
-
-		/* 	return emitted + attenuation.cwiseProduct(color(scattered, world, throughput)); */
-		/* } */
-		/* else */
-		/* 	return emitted; */
-	}
-
-	// Return background color
-	return Vector3f(0, 0, 0);
-}
-
 hittable *cornell_box() {
-	/* hittable **list = new hittable*[2]; */
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
 	material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
 	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
 	material *light = new diffuse_light(Vector3f(15, 15, 15));
+
+
+
+
 	mesh *m = new mesh(Vector3f(0,0,-3), "test.obj", white);
-	int i = m->size;
-	/* list[i++] = new sphere(Vector3f(0,0,-1), 0.5, white); */
+	bvh_node *node1 = new bvh_node(m->list, m->size);
 
-
-
-
+	
+	hittable **list = new hittable*[1];
+	int i = 0;
+	list[i++] = new sphere(Vector3f(0,0,-2), 0.5, white);
+	bvh_node *node2 = new bvh_node(list, i);
 
 	/* list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green)); */
 	/* list[i++] = new yz_plane(0, 555, 0, 555, 0, red); */
@@ -94,7 +55,7 @@ hittable *cornell_box() {
 	/* list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white)); */
 	/* list[i++] = new mesh(Vector3f(200, 0, 0), "box.obj", red); */
 	/* list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red); */
-	return new bvh_node(m->list, i);
+	return node1->merge(node2);
 }
 
 void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, renderer *rend)

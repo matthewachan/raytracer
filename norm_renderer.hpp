@@ -8,6 +8,7 @@ public:
 	norm_renderer() {
 		n_samples = 1;
 	}
+
 	virtual Eigen::Vector3f compute_color(const ray& r, hittable *objects, Eigen::Vector3f throughput) const {
 		hit_record rec;
 		float epsilon = 0.001;
