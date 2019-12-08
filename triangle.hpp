@@ -30,7 +30,7 @@ public:
 		rec.t = t;
 		rec.mat = mat;
 		rec.normal = (v0v1.cross(v0v2)).normalized();
-		if (rec.normal.dot(r.direction()) < 0)
+		if (rec.normal.dot(r.direction()) > 0)
 			rec.normal = -rec.normal;
 		rec.p = p;
 

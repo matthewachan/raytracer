@@ -12,10 +12,11 @@ class diffuse_light : public material {
 		}
 		virtual Eigen::Vector3f emitted(const ray& r_in, const hit_record& rec) const
 		{
-			if (rec.normal.dot(r_in.direction()) > 0.0)
-				return color;
-			else
-				return Eigen::Vector3f(0,0,0);
+			return color;
+			/* if (rec.normal.dot(r_in.direction()) > 0.0) */
+			/* 	return color; */
+			/* else */
+			/* 	return Eigen::Vector3f(0,0,0); */
 		}
 
 		Eigen::Vector3f color;

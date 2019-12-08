@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "norm_renderer.hpp"
+#include "gi_renderer.hpp"
 #include "bvh_node.hpp"
 #include "camera.hpp"
 #include "mesh.hpp"
@@ -36,17 +37,13 @@ hittable *cornell_box() {
 	material *light = new diffuse_light(Vector3f(15, 15, 15));
 
 
+	mesh *cbox = new mesh(Vector3f(0,-1,-2), "cbox.obj", white);
+	bvh_node *node1 = new bvh_node(cbox->list, cbox->size);
 
-
-	mesh *m = new mesh(Vector3f(0,0,-3), "test.obj", white);
-	bvh_node *node1 = new bvh_node(m->list, m->size);
+	mesh *cbox_light = new mesh(Vector3f(0,-1,-2), "cbox_light.obj", light);
+	bvh_node *node2 = new bvh_node(cbox_light->list, cbox_light->size);
 
 	
-	hittable **list = new hittable*[1];
-	int i = 0;
-	list[i++] = new sphere(Vector3f(0,0,-2), 0.5, white);
-	bvh_node *node2 = new bvh_node(list, i);
-
 	/* list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green)); */
 	/* list[i++] = new yz_plane(0, 555, 0, 555, 0, red); */
 	/* list[i++] = new xz_plane(213, 343, 227, 332, 554, light); */
@@ -69,7 +66,7 @@ void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, 
 				float v = float(j + drand48()) / IMG_HEIGHT;
 				ray r = cam.get_ray(u, v);
 				Vector3f throughput = Vector3f(1,1,1);
-				col += rend->compute_color(r, world, throughput);
+				col += rend->compute_color(r, world, 0, throughput);
 			}
 			col /= float(rend->n_samples);
 			img[j][i] = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
@@ -86,14 +83,16 @@ int main()
 
 	Vector3f lookfrom(0, 0, 0);
 	Vector3f lookat(0,0,-1);
+	Vector3f up(0,1,0);
 	float vfov = 90.0;
 
-	camera cam(lookfrom, lookat, Vector3f(0,1,0), vfov,
+	camera cam(lookfrom, lookat, up, vfov,
 			float(IMG_WIDTH)/float(IMG_HEIGHT));
 
 	hittable *world = cornell_box();
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
-	renderer *r = new norm_renderer();
+	/* renderer *r = new norm_renderer(); */
+	renderer *r = new gi_renderer(50);
 
 	int nthreads = std::thread::hardware_concurrency();
 	std::cout << "Rendering with " << nthreads << " threads" << std::endl;
