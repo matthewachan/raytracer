@@ -20,6 +20,7 @@ const std::regex V_VT_VN_FMT("[[:s:]]+"
 			"[0-9]+/[0-9]+/[0-9]+[[:s:]]+"
 			"[0-9]+/[0-9]+/[0-9]+[[:s:]]+"
 			"[0-9]+/[0-9]+/[0-9]+.*");
+
 class mesh : public hittable
 {
 	public:
@@ -115,7 +116,7 @@ class mesh : public hittable
 			size = triangles.size() / 3;
 			list = new hittable*[size];
 			for (int i = 0; i < size; ++i) {
-				std::cout << "Triangle: " << triangles[3*i] << std::endl << triangles[3*i+1] << std::endl << triangles[3*i+2] << std::endl;
+				/* std::cout << "Triangle: " << triangles[3*i] << std::endl << triangles[3*i+1] << std::endl << triangles[3*i+2] << std::endl; */
 				list[i] = new triangle(triangles[3*i], triangles[3*i+1], triangles[3*i+2], m);
 			}
 
@@ -136,7 +137,21 @@ class mesh : public hittable
 			return hit_anything;
 		}
 		virtual bool bounding_box(aabb& box) const {
-			box = aabb(min_corner, max_corner);
+
+			// Check if first bounding box exists
+			aabb temp_box;
+			if (!list[0]->bounding_box(temp_box))
+				return false;
+			box = temp_box;
+
+
+			// Group boxes together one-by-one
+			for (int i = 1; i < size; ++i) {
+				if (list[i]->bounding_box(temp_box))
+					surrounding_box(temp_box, box);
+				else
+					return false;
+			}
 			return true;
 		}
 		Eigen::Vector3f min_corner;

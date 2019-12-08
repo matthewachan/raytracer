@@ -6,6 +6,7 @@
 #include <random>
 #include <thread>
 
+#include "norm_renderer.hpp"
 #include "bvh_node.hpp"
 #include "camera.hpp"
 #include "mesh.hpp"
@@ -24,9 +25,18 @@
 
 using namespace Eigen;
 
-#define IMG_WIDTH 100
-#define IMG_HEIGHT 100
+#define IMG_WIDTH 200
+#define IMG_HEIGHT 200
 #define N_SAMPLES 50
+
+Vector3f uv_renderer(const ray& r, hittable *world, Vector3f throughput)
+{
+	hit_record rec;
+	float epsilon = 0.001;
+	if (world->hit(r, epsilon, std::numeric_limits<float>::max(), rec))
+		return 0.5 * (rec.normal + Vector3f(1,1,1));
+	return Vector3f(0, 0, 0);
+}
 
 
 Vector3f color(const ray& r, hittable *world, Vector3f throughput)
@@ -34,26 +44,28 @@ Vector3f color(const ray& r, hittable *world, Vector3f throughput)
 	hit_record rec;
 	float epsilon = 0.001;
 	if (world->hit(r, epsilon, std::numeric_limits<float>::max(), rec)) {
-		Vector3f emitted = rec.mat->emitted(r, rec);
+		return 0.5 * (rec.normal + Vector3f(1,1,1));
 
-		Vector3f attenuation;
-		ray scattered;
-		float pdf;
-		if (rec.mat->scatter(r, rec, attenuation, scattered, pdf)) {
+		/* Vector3f emitted = rec.mat->emitted(r, rec); */
 
-			throughput = attenuation.cwiseProduct(throughput);
-			float p = std::max(throughput[0], std::max(throughput[1], throughput[2]));
+		/* Vector3f attenuation; */
+		/* ray scattered; */
+		/* float pdf; */
+		/* if (rec.mat->scatter(r, rec, attenuation, scattered, pdf)) { */
 
-			// Russian Roulette path termination
-			if (drand48() > p)
-				return emitted;
+		/* 	throughput = attenuation.cwiseProduct(throughput); */
+		/* 	float p = std::max(throughput[0], std::max(throughput[1], throughput[2])); */
 
-			throughput *= 1/p;
+		/* 	// Russian Roulette path termination */
+		/* 	if (drand48() > p) */
+		/* 		return emitted; */
 
-			return emitted + attenuation.cwiseProduct(color(scattered, world, throughput));
-		}
-		else
-			return emitted;
+		/* 	throughput *= 1/p; */
+
+		/* 	return emitted + attenuation.cwiseProduct(color(scattered, world, throughput)); */
+		/* } */
+		/* else */
+		/* 	return emitted; */
 	}
 
 	// Return background color
@@ -61,38 +73,44 @@ Vector3f color(const ray& r, hittable *world, Vector3f throughput)
 }
 
 hittable *cornell_box() {
-	hittable **list = new hittable*[8];
-	int i = 0;
+	/* hittable **list = new hittable*[2]; */
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
 	material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
 	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
 	material *light = new diffuse_light(Vector3f(15, 15, 15));
-	list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green));
-	list[i++] = new yz_plane(0, 555, 0, 555, 0, red);
-	list[i++] = new xz_plane(213, 343, 227, 332, 554, light);
-	list[i++] = new flip_normals(new xz_plane(0, 555, 0, 555, 555, green));
-	list[i++] = new xz_plane(0, 555, 0, 555, 0, white);
-	list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white));
-	/* list[i++] = new sphere(Vector3f(278, 278, 278), 50, green); */
-	list[i++] = new mesh(Vector3f(150, 150, 150), "triangle.obj", red);
+	mesh *m = new mesh(Vector3f(0,0,-3), "test.obj", white);
+	int i = m->size;
+	/* list[i++] = new sphere(Vector3f(0,0,-1), 0.5, white); */
 
+
+
+
+
+	/* list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green)); */
+	/* list[i++] = new yz_plane(0, 555, 0, 555, 0, red); */
+	/* list[i++] = new xz_plane(213, 343, 227, 332, 554, light); */
+	/* list[i++] = new flip_normals(new xz_plane(0, 555, 0, 555, 555, green)); */
+	/* list[i++] = new xz_plane(0, 555, 0, 555, 0, white); */
+	/* list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white)); */
+	/* list[i++] = new mesh(Vector3f(200, 0, 0), "box.obj", red); */
 	/* list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red); */
-	return new bvh_node(list, i);
+	return new bvh_node(m->list, i);
 }
 
-void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img)
+void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, renderer *rend)
 {
 	for (int j = IMG_HEIGHT - tid - 1; j >= 0; j -= nthreads) {
 		img[j] = new Vector3f[IMG_WIDTH];
 		for (int i = 0; i < IMG_WIDTH; ++i) {
 			Vector3f col(0, 0, 0);
-			for (int s = 0; s < N_SAMPLES; s++) {
+			for (int s = 0; s < rend->n_samples; s++) {
 				float u = float(i + drand48()) / IMG_WIDTH;
 				float v = float(j + drand48()) / IMG_HEIGHT;
 				ray r = cam.get_ray(u, v);
-				col += color(r, world, Vector3f(1, 1, 1));
+				Vector3f throughput = Vector3f(1,1,1);
+				col += rend->compute_color(r, world, throughput);
 			}
-			col /= float(N_SAMPLES);
+			col /= float(rend->n_samples);
 			img[j][i] = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 		}
 	}
@@ -101,17 +119,20 @@ void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img)
 int main()
 {
 	/* Cornell box camera settings */
-	Vector3f lookfrom(278, 278, -800);
-	Vector3f lookat(278,278,0);
-	float dist_to_focus = 10.0;
-	float aperture = 0.0;
-	float vfov = 40.0;
+	/* Vector3f lookfrom(278, 278, -800); */
+	/* Vector3f lookat(278,278,0); */
+	/* float vfov = 40.0; */
+
+	Vector3f lookfrom(0, 0, 0);
+	Vector3f lookat(0,0,-1);
+	float vfov = 90.0;
 
 	camera cam(lookfrom, lookat, Vector3f(0,1,0), vfov,
 			float(IMG_WIDTH)/float(IMG_HEIGHT));
 
 	hittable *world = cornell_box();
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
+	renderer *r = new norm_renderer();
 
 	int nthreads = std::thread::hardware_concurrency();
 	std::cout << "Rendering with " << nthreads << " threads" << std::endl;
@@ -119,7 +140,7 @@ int main()
 
 	// Initialize threads to render image
 	for (int i = 0; i < nthreads; ++i)
-		threads[i] = std::thread(render, i, nthreads, cam, world, img);
+		threads[i] = std::thread(render, i, nthreads, cam, world, img, r);
 
 	// Wait for threads to finish
 	for (int i = 0; i < nthreads; ++i)

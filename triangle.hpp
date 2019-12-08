@@ -50,7 +50,7 @@ public:
 		ymax = std::max(std::max(v1[1], v2[1]), v0[1]);
 		zmin = std::min(std::min(v1[2], v2[2]), v0[2]);
 		zmax = std::max(std::max(v1[2], v2[2]), v0[2]);
-		box = aabb(Eigen::Vector3f(xmin, ymin, zmin-offset), Eigen::Vector3f(xmax, ymax, zmax+offset));
+		box = aabb(Eigen::Vector3f(xmin-offset, ymin-offset, zmin-offset), Eigen::Vector3f(xmax+offset, ymax+offset, zmax+offset));
 		return true;
 	}
 	Eigen::Vector3f v0;
