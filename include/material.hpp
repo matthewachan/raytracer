@@ -11,6 +11,8 @@ class material
 		{
 			return Eigen::Vector3f(0, 0, 0);
 		}
+		virtual ~material() = 0;
 };
+material::~material() {};
 
 #endif

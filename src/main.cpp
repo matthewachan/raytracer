@@ -11,16 +11,11 @@
 #include "bvh_node.hpp"
 #include "camera.hpp"
 #include "mesh.hpp"
-#include "hittable_list.hpp"
 #include "ray.hpp"
 #include "sphere.hpp"
 #include "triangle.hpp"
 #include "lambertian.hpp"
-#include "metal.hpp"
-#include "dielectric.hpp"
-#include "rectangle.hpp"
 #include "diffuse_light.hpp"
-#include "flip_normals.hpp"
 
 using namespace Eigen;
 
@@ -28,29 +23,34 @@ using namespace Eigen;
 #define IMG_HEIGHT 200
 #define N_SAMPLES 50
 
-hittable *cornell_box() {
+hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes) {
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
 	material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
 	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
 	material *light = new diffuse_light(Vector3f(15, 15, 15));
+	mats = new material*[4];
+	mats[n_mats++] = red;
+	mats[n_mats++] = white;
+	mats[n_mats++] = green;
+	mats[n_mats++] = light;
 
 	Vector3f offset(.28, -2.6, -2.5);
 
-	mesh **meshes = new mesh*[8];
-	int n = 0;
+	meshes = new mesh*[8];
 	// Walls
-	meshes[n++] = new mesh(offset, "models/leftwall.obj", green);
-	meshes[n++] = new mesh(offset, "models/rightwall.obj", red);
-	meshes[n++] = new mesh(offset, "models/backwall.obj", white);
-	meshes[n++] = new mesh(offset, "models/ceiling.obj", white);
-	meshes[n++] = new mesh(offset, "models/floor.obj", white);
+	meshes[n_meshes++] = new mesh(offset, "models/leftwall.obj", green);
+	meshes[n_meshes++] = new mesh(offset, "models/rightwall.obj", red);
+	meshes[n_meshes++] = new mesh(offset, "models/backwall.obj", white);
+	meshes[n_meshes++] = new mesh(offset, "models/ceiling.obj", white);
+	meshes[n_meshes++] = new mesh(offset, "models/floor.obj", white);
 	// Boxes	
-	meshes[n++] = new mesh(offset, "models/tallbox.obj", white);
-	meshes[n++] = new mesh(offset, "models/shortbox.obj", white);
+	meshes[n_meshes++] = new mesh(offset, "models/tallbox.obj", white);
+	meshes[n_meshes++] = new mesh(offset, "models/shortbox.obj", white);
 	// Light
-	meshes[n++] = new mesh(offset, "models/light.obj", light);
+	meshes[n_meshes++] = new mesh(offset, "models/light.obj", light);
+
 	bvh_node *bvh = new bvh_node(meshes[0]->list, meshes[0]->size);
-	for (int i = 1; i < n; ++i) {
+	for (int i = 1; i < n_meshes; ++i) {
 		bvh_node *node = new bvh_node(meshes[i]->list, meshes[i]->size);
 		bvh = bvh->merge(node);
 			
@@ -87,7 +87,11 @@ int main()
 	camera cam(lookfrom, lookat, up, vfov,
 			float(IMG_WIDTH)/float(IMG_HEIGHT));
 
-	hittable *world = cornell_box();
+	material **mats;
+	mesh **meshes;
+	int n_mats, n_meshes;
+	hittable *world = cornell_box(mats, n_mats, meshes, n_meshes);
+
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
 	renderer *r = new norm_renderer();
 	/* renderer *r = new gi_renderer(N_SAMPLES); */
@@ -118,5 +122,17 @@ int main()
 		}
 	}
 
+	for (int i = 0; i < n_mats; ++i)
+		delete mats[i];
+	for (int i = 0; i < n_meshes; ++i)
+		delete meshes[i];
+	delete[] mats;
+	delete[] meshes;
+	for (int j = IMG_HEIGHT - 1; j >= 0; j--)
+		delete[] img[j];
+	delete[] img;
+	delete r;
+	delete world;
+	
 	return 0;
 }

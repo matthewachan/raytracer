@@ -87,6 +87,7 @@ class mesh : public hittable
 					else {
 						printf("Failed to parse OBJ file.\
 								Check OBJ format for validity.\n");
+						delete[] line;
 						fclose(file);
 						return;
 					}
@@ -151,6 +152,11 @@ class mesh : public hittable
 			}
 			return true;
 		}
+		~mesh() {
+			for (int i = 0; i < size; ++i)
+				delete list[i];
+			delete[] list;
+		};
 		hittable **list;
 		int size;
 		material *mat;
