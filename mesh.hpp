@@ -111,33 +111,9 @@ class mesh : public hittable
 			size = triangles.size() / 3;
 			list = new hittable*[size];
 
-			areas = new float[size];
-			float smallest = INFINITY;
-
 			for (int i = 0; i < size; ++i) {
 				// Add new triangle to list
 				list[i] = new triangle(triangles[3*i], triangles[3*i+1], triangles[3*i+2], m);
-
-				// Compute area of the triangle
-				Eigen::Vector3f cross = (triangles[3*i+1]-triangles[3*i]).cross(triangles[3*i+2]-triangles[3*i]);
-				areas[i] = 0.5*cross.norm();
-				if (areas[i] < smallest)
-					smallest = areas[i];
-			}
-			// Divide areas of all triangles by the smallest triangle area
-			int total = 0;
-			for (int i = 0; i < size; ++i) {
-				areas[i] = round(areas[i]/smallest);
-				total += areas[i];
-			}
-			// Construct array of triangle indices with frequency proportional to its area
-			prob = new int[total];
-			total_prob = total;
-			int cntr = 0;
-			for (int i = 0; i < size; ++i) {
-				int count = areas[i];	
-				while(cntr < cntr + count)
-					prob[cntr++] = i;
 			}
 
 			fclose(file);
@@ -155,24 +131,6 @@ class mesh : public hittable
 				}
 			}
 			return hit_anything;
-		}
-		Eigen::Vector3f random_sample(Eigen::Vector3f origin, float &pdf)
-		{
-			int random_ind = (int)drand48()*total_prob;
-			int random_triangle = prob[random_ind];
-			pdf = total_prob / areas[random_triangle];
-			
-			triangle *tri = (triangle*) list[random_triangle];
-			
-			// Random sample on triangle
-			float u, v;
-			do {
-				u = drand48();
-				v = drand48();
-			} while (u + v > 1);
-
-
-			return u*tri->v0 + v*tri->v1 + (1.0f-(u+v))*tri->v2;
 		}
 
 		virtual bool bounding_box(aabb& box) const {
@@ -196,9 +154,6 @@ class mesh : public hittable
 		hittable **list;
 		int size;
 		material *mat;
-		int *prob;
-		int total_prob;
-		float *areas;
 };
 
 #endif

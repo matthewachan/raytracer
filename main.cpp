@@ -18,9 +18,7 @@
 #include "lambertian.hpp"
 #include "metal.hpp"
 #include "dielectric.hpp"
-#include "xy_plane.hpp"
-#include "yz_plane.hpp"
-#include "xz_plane.hpp"
+#include "rectangle.hpp"
 #include "diffuse_light.hpp"
 #include "flip_normals.hpp"
 
@@ -44,14 +42,6 @@ hittable *cornell_box() {
 	bvh_node *node2 = new bvh_node(cbox_light->list, cbox_light->size);
 
 	
-	/* list[i++] = new flip_normals(new yz_plane(0, 555, 0, 555, 555, green)); */
-	/* list[i++] = new yz_plane(0, 555, 0, 555, 0, red); */
-	/* list[i++] = new xz_plane(213, 343, 227, 332, 554, light); */
-	/* list[i++] = new flip_normals(new xz_plane(0, 555, 0, 555, 555, green)); */
-	/* list[i++] = new xz_plane(0, 555, 0, 555, 0, white); */
-	/* list[i++] = new flip_normals(new xy_plane(0, 555, 0, 555, 555, white)); */
-	/* list[i++] = new mesh(Vector3f(200, 0, 0), "box.obj", red); */
-	/* list[i++] = new triangle(Vector3f(150, 150, 150), Vector3f(500,500,150), Vector3f(500,150,150), red); */
 	return node1->merge(node2);
 }
 
