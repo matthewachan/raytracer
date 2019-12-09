@@ -23,11 +23,8 @@ class gi_renderer : public renderer {
 				float material_pdf;
 				// Scatter incident ray (dependent on surface material) to get exitant ray
 				if (rec.mat->scatter(r, rec, attenuation, scattered, material_pdf)) {
-					
-					
-					if (depth > max_depth)
-						return emitted;
-
+					/* if (depth > max_depth) */
+					/* 	return emitted; */
 
 					// Generate random scatter direction wrt some probability density function
 					Eigen::Vector3f random_dir = change_basis(uniform_sample_proj_solid_angle(), rec.normal);
@@ -38,15 +35,13 @@ class gi_renderer : public renderer {
 						pdf = cos / M_PI;
 
 					// Attentuate throughput
-					/* if (depth > 1) */
-					/* 	throughput = material_pdf*attenuation.cwiseProduct(throughput)/pdf; */
+					if (depth > 1)
+						throughput = material_pdf*attenuation.cwiseProduct(throughput)/pdf;
 					// Russian Roulette path termination
 					float p = std::max(throughput[0], std::max(throughput[1], throughput[2]));
 					if (drand48() > p)
 						return (1/p)*(emitted);
 					else {
-						// Increase weight of throughput based on survival probability
-						/* new_throughput *= 1/p; */
 						// Color = emitted + albedo * reflected * scatter_pdf / random_direction_pdf
 						Eigen::Vector3f reflected = emitted + material_pdf*attenuation.cwiseProduct(compute_color(scattered, objects, depth +1, throughput))/pdf;
 						return (1/p)*(reflected);

@@ -34,15 +34,28 @@ hittable *cornell_box() {
 	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
 	material *light = new diffuse_light(Vector3f(15, 15, 15));
 
+	Vector3f offset(.28, -2.6, -2.5);
 
-	mesh *cbox = new mesh(Vector3f(0,-1,-2), "cbox.obj", white);
-	bvh_node *node1 = new bvh_node(cbox->list, cbox->size);
-
-	mesh *cbox_light = new mesh(Vector3f(0,-1,-2), "cbox_light.obj", light);
-	bvh_node *node2 = new bvh_node(cbox_light->list, cbox_light->size);
-
-	
-	return node1->merge(node2);
+	mesh **meshes = new mesh*[8];
+	int n = 0;
+	// Walls
+	meshes[n++] = new mesh(offset, "leftwall.obj", green);
+	meshes[n++] = new mesh(offset, "rightwall.obj", red);
+	meshes[n++] = new mesh(offset, "backwall.obj", white);
+	meshes[n++] = new mesh(offset, "ceiling.obj", white);
+	meshes[n++] = new mesh(offset, "floor.obj", white);
+	// Boxes	
+	meshes[n++] = new mesh(offset, "tallbox.obj", white);
+	meshes[n++] = new mesh(offset, "shortbox.obj", white);
+	// Light
+	meshes[n++] = new mesh(offset, "light.obj", light);
+	bvh_node *bvh = new bvh_node(meshes[0]->list, meshes[0]->size);
+	for (int i = 1; i < n; ++i) {
+		bvh_node *node = new bvh_node(meshes[i]->list, meshes[i]->size);
+		bvh = bvh->merge(node);
+			
+	}
+	return bvh;
 }
 
 void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, renderer *rend)
@@ -66,11 +79,6 @@ void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, 
 
 int main()
 {
-	/* Cornell box camera settings */
-	/* Vector3f lookfrom(278, 278, -800); */
-	/* Vector3f lookat(278,278,0); */
-	/* float vfov = 40.0; */
-
 	Vector3f lookfrom(0, 0, 0);
 	Vector3f lookat(0,0,-1);
 	Vector3f up(0,1,0);
@@ -81,8 +89,8 @@ int main()
 
 	hittable *world = cornell_box();
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
-	/* renderer *r = new norm_renderer(); */
-	renderer *r = new gi_renderer(50);
+	renderer *r = new norm_renderer();
+	/* renderer *r = new gi_renderer(N_SAMPLES); */
 
 	int nthreads = std::thread::hardware_concurrency();
 	std::cout << "Rendering with " << nthreads << " threads" << std::endl;
