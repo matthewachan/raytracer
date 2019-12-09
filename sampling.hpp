@@ -4,7 +4,31 @@
 #include <math.h>
 #include <Eigen/Dense>
 
-// Modify to take hit record and output scattered ray
+Eigen::Vector3f change_basis(Eigen::Vector3f dir, Eigen::Vector3f norm)
+{
+	// Construct basis vectors from normal vector
+	Eigen::Vector3f w = norm;
+
+	// Random vector direction
+	Eigen::Vector3f u;
+	if (fabs(w[0]) > 0.9)
+		u = Eigen::Vector3f(0, 1, 0);
+	else
+		u = Eigen::Vector3f(1, 0, 0);
+
+	Eigen::Vector3f v = w.cross(u).normalized();
+	u = w.cross(v);
+
+
+	// Change basis	
+	Eigen::Vector3f new_dir;
+	float x = dir[0], y = dir[1], z = dir[2];
+	new_dir[0] = x * u[0] + y * v[0] + z * w[0];
+	new_dir[1] = x * u[1] + y * v[1] + z * w[1];
+	new_dir[2] = x * u[2] + y * v[2] + z * w[2];
+	return new_dir;
+}
+
 
 Eigen::Vector3f uniform_sample_unit_sphere()
 {
@@ -25,7 +49,7 @@ Eigen::Vector3f uniform_sample_proj_solid_angle()
 	/* float x = radius * sinPhi * std::sinf(theta); */
 	/* float y = radius * cosPhi; */
 	/* float z = radius * sinPhi * std::cosf(theta); */
-	
+
 
 	float r1 = drand48();
 	float r2 = drand48();
