@@ -1,10 +1,11 @@
 CXX = g++ -std=c++11
 CFLAGS = -g -Wall
 DEPS = /usr/local/include/eigen3
-CXXFILES = main.cpp
+SRC_DIR = src
+CXXFILES = $(SRC_DIR)/main.cpp
 
-all: main.cpp
-	$(CXX) -I $(DEPS) $(CXXFILES) -o main
+all: $(SRC_DIR)/main.cpp
+	$(CXX) -Iinclude -I $(DEPS) $(CXXFILES) -o main
 
 .PHONY: clean
 clean:
