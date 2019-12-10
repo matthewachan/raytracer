@@ -9,7 +9,7 @@ public:
 		n_samples = 1;
 	}
 
-	virtual Eigen::Vector3f compute_color(const ray& r, hittable *objects, int depth, Eigen::Vector3f throughput) const {
+	virtual Eigen::Vector3f compute_color(const ray& r, hittable *objects, hittable_list *lights, int depth, Eigen::Vector3f throughput) const {
 		hit_record rec;
 		float epsilon = 0.001;
 		if (objects->hit(r, epsilon, std::numeric_limits<float>::max(), rec))

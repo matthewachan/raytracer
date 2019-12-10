@@ -50,7 +50,7 @@ using namespace Eigen;
 
 
 
-hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes) {
+hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes, hittable_list **lights) {
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
 	material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
 	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
@@ -76,6 +76,18 @@ hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes) 
 	// Light
 	meshes[n_meshes++] = new mesh(offset, "models/light.obj", light);
 
+	/* mesh *light_mesh = new mesh(offset, "models/light.obj", light); */
+	/* hittable **l = new hittable*[1]; */
+	/* l[0] = new sphere(Vector3f(0,0,0),1,white); */
+	/* lights[0] = new hittable_list(light_mesh->list, light_mesh->size); */
+	/* lights = new hittable_list(light_mesh->list, light_mesh->size); */
+
+	/* hittable **l = new hittable*[1]; */
+	/* l[0] = new sphere(Vector3f(0,0,0),1,white); */
+	/* hittable_list *hl = new hittable_list(l, 1); */
+
+	
+
 	bvh_node *bvh = new bvh_node(meshes[0]->list, meshes[0]->size);
 	for (int i = 1; i < n_meshes; ++i) {
 		bvh_node *node = new bvh_node(meshes[i]->list, meshes[i]->size);
@@ -85,7 +97,7 @@ hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes) 
 	return bvh;
 }
 
-void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, renderer *rend)
+void render(int tid, int nthreads, camera cam, hittable *world, hittable_list *lights, Vector3f **img, renderer *rend)
 {
 	for (int j = IMG_HEIGHT - tid - 1; j >= 0; j -= nthreads) {
 		img[j] = new Vector3f[IMG_WIDTH];
@@ -96,7 +108,7 @@ void render(int tid, int nthreads, camera cam, hittable *world, Vector3f **img, 
 				float v = float(j + drand48()) / IMG_HEIGHT;
 				ray r = cam.get_ray(u, v);
 				Vector3f throughput = Vector3f(1,1,1);
-				col += rend->compute_color(r, world, 0, throughput);
+				col += rend->compute_color(r, world, lights, 0, throughput);
 			}
 			col /= float(rend->n_samples);
 			img[j][i] = Vector3f(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
@@ -116,12 +128,14 @@ int main()
 
 	material **mats;
 	mesh **meshes;
+	hittable_list **l = new hittable_list*[0];
 	int n_mats, n_meshes;
-	hittable *world = cornell_box(mats, n_mats, meshes, n_meshes);
+	hittable *world = cornell_box(mats, n_mats, meshes, n_meshes, l);
+
 
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
-	renderer *r = new norm_renderer();
-	/* renderer *r = new gi_renderer(N_SAMPLES); */
+	/* renderer *r = new norm_renderer(); */
+	renderer *r = new gi_renderer(N_SAMPLES);
 
 	int nthreads = std::thread::hardware_concurrency();
 	std::cout << "Rendering with " << nthreads << " threads" << std::endl;
@@ -129,7 +143,7 @@ int main()
 
 	// Initialize threads to render image
 	for (int i = 0; i < nthreads; ++i)
-		threads[i] = std::thread(render, i, nthreads, cam, world, img, r);
+		threads[i] = std::thread(render, i, nthreads, cam, world, lights, img, r);
 
 	// Wait for threads to finish
 	for (int i = 0; i < nthreads; ++i)

@@ -37,13 +37,13 @@ public:
 		return true;
 	}
 
-	Eigen::Vector3f random_sample(const Eigen::Vector3f& origin)
-	{
-		float e1 = drand48();
-		float e2 = drand48();
-		Eigen::Vector3f pt = v0 + e2 * sqrt(1 - e1) * (v1 - v0) + (1 - sqrt(1 - e1)) * (v2 - v0);
-		return pt - origin;
-	}
+	/* Eigen::Vector3f random_sample(const Eigen::Vector3f& origin) */
+	/* { */
+		/* float e1 = drand48(); */
+		/* float e2 = drand48(); */
+		/* Eigen::Vector3f pt = v0 + e2 * sqrt(1 - e1) * (v1 - v0) + (1 - sqrt(1 - e1)) * (v2 - v0); */
+		/* return pt - origin; */
+	/* } */
 
 	float pdf(const Eigen::Vector3f& origin, const Eigen::Vector3f& dir) {
 		hit_record rec;
