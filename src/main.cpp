@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "norm_renderer.hpp"
+#include "hittable_list.hpp"
 #include "gi_renderer.hpp"
 #include "bvh_node.hpp"
 #include "camera.hpp"
@@ -22,6 +23,32 @@ using namespace Eigen;
 #define IMG_WIDTH 200
 #define IMG_HEIGHT 200
 #define N_SAMPLES 50
+
+/* #include <chrono>*/
+/* #include <random> // requires flag --std=c++11 (or higher)*/
+/* #include <mutex> // requires flag -pthread*/
+
+/* std::mt19937_64 engine; // Defines an engine*/
+/* std::uniform_real_distribution<float> rng(0.0, 1.0); // Define distribution*/
+/* std::mutex mutex_lock; // a mutex to guard my_rng*/
+
+/* // This is the function to call if you want a random number in the interval [0,1)*/
+
+/* double RANDOM() {*/
+/*     std::lock_guard<std::mutex> lock(mutex_lock);*/
+/*     return rng(engine);*/
+/*     // mutex is released when lock goes out of scope*/
+/* }*/
+
+
+/* void Seed(int seed) {*/
+/*     std::lock_guard<std::mutex> lock(my_rng_mutex);*/
+/*     my_rng.seed(seed);*/
+/*     // mutex is released when lock goes out of scope*/
+/* }*/
+
+
+
 
 hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes) {
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));

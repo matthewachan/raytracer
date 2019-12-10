@@ -37,6 +37,26 @@ public:
 		return true;
 	}
 
+	Eigen::Vector3f random_sample(const Eigen::Vector3f& origin)
+	{
+		float e1 = drand48();
+		float e2 = drand48();
+		Eigen::Vector3f pt = v0 + e2 * sqrt(1 - e1) * (v1 - v0) + (1 - sqrt(1 - e1)) * (v2 - v0);
+		return pt - origin;
+	}
+
+	float pdf(const Eigen::Vector3f& origin, const Eigen::Vector3f& dir) {
+		hit_record rec;
+		float tmin = 0.001;
+		if (this->hit(ray(origin, dir), tmin, std::numeric_limits<float>::max(), rec)) {
+			float area = 0.5*((v1-v0).cross(v2-v0)).norm();
+			float distance_squared = pow(rec.t * dir.norm(), 2);
+			float cosine = fabs(dir.dot(rec.normal) / dir.norm());
+			return  distance_squared / (cosine * area);
+		}
+		else
+			return 0;
+	}
 
 
 	virtual bool bounding_box(aabb& box) const
