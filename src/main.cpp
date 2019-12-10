@@ -50,7 +50,7 @@ using namespace Eigen;
 
 
 
-hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes, hittable_list **lights) {
+hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes, hittable_list *lights) {
 	material *red = new lambertian(Vector3f(0.65, 0.05, 0.05));
 	material *white = new lambertian(Vector3f(0.73, 0.73, 0.73));
 	material *green = new lambertian(Vector3f(0.12, 0.45, 0.15));
@@ -76,17 +76,6 @@ hittable *cornell_box(material **mats, int n_mats, mesh **meshes, int n_meshes, 
 	// Light
 	meshes[n_meshes++] = new mesh(offset, "models/light.obj", light);
 
-	/* mesh *light_mesh = new mesh(offset, "models/light.obj", light); */
-	/* hittable **l = new hittable*[1]; */
-	/* l[0] = new sphere(Vector3f(0,0,0),1,white); */
-	/* lights[0] = new hittable_list(light_mesh->list, light_mesh->size); */
-	/* lights = new hittable_list(light_mesh->list, light_mesh->size); */
-
-	/* hittable **l = new hittable*[1]; */
-	/* l[0] = new sphere(Vector3f(0,0,0),1,white); */
-	/* hittable_list *hl = new hittable_list(l, 1); */
-
-	
 
 	bvh_node *bvh = new bvh_node(meshes[0]->list, meshes[0]->size);
 	for (int i = 1; i < n_meshes; ++i) {
@@ -128,10 +117,9 @@ int main()
 
 	material **mats;
 	mesh **meshes;
-	hittable_list **l = new hittable_list*[0];
 	int n_mats, n_meshes;
-	hittable *world = cornell_box(mats, n_mats, meshes, n_meshes, l);
-
+	hittable_list *lights;
+	hittable *world = cornell_box(mats, n_mats, meshes, n_meshes, lights);
 
 	Vector3f **img = new Vector3f*[IMG_HEIGHT];
 	/* renderer *r = new norm_renderer(); */
